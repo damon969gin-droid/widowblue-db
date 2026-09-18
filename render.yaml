@@ -1,0 +1,20 @@
+version: 1
+services:
+  - type: web
+    name: widowblue-web
+    env: node
+    nodeVersion: "22.11.0"
+    region: frankfurt
+    plan: free
+    branch: main
+    repo: https://github.com/damon969gin-droid/Widowblue
+    buildCommand: npm install && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: WIDOWBLUE_DB_PATH
+        value: /tmp/widowblue.db
+      - key: WIDOWBLUE_JWT_SECRET
+        sync: false
+# Not using a persistent disk on the free plan; remove "disks" section to avoid confusion
