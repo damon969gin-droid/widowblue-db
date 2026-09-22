@@ -1,24 +1,31 @@
-import { getDb } from "../../../../../lib/server/db.js";
+// app/api/auth/2fa/verify/route.js
+import { initDb, getUserById, updateUserTotp } from "../../../../../lib/server/db.js";
 import { verifyTotp } from "../../../../../lib/server/security.js";
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 
-export async function POST(request) {
+export async function POST(request, { env }) {
+  await initDb(env.DB);
+
   const userId = getUserId(request);
   if (!userId) return unauthorized();
 
+  const user = await getUserById(env.DB, userId);
+  if (!user) {
+    return Response.json({ error: "Utente non trovato" }, { status: 404 });
+  }
+
   const body = await request.json().catch(() => ({}));
-  const code = String(body.code || "");
+  const totpCode = String(body.totpCode || "");
 
-  const db = getDb();
-  const user = db.prepare("SELECT totp_secret FROM users WHERE id = ?").get(userId);
-
-  if (!user || !user.totp_secret) {
-    return Response.json({ error: "Nessun setup 2FA in corso" }, { status: 400 });
-  }
-  if (!verifyTotp(user.totp_secret, code)) {
-    return Response.json({ error: "Codice non valido" }, { status: 400 });
+  if (!user.totp_secret) {
+    return Response.json({ error: "Nessun segreto 2FA configurato" }, { status: 400 });
   }
 
-  db.prepare("UPDATE users SET totp_enabled = 1 WHERE id = ?").run(userId);
+  if (!verifyTotp(user.totp_secret, totpCode)) {
+    return Response.json({ error: "Codice 2FA non valido" }, { status: 401 });
+  }
+
+  await updateUserTotp(env.DB, userId, user.totp_secret, true);
+
   return Response.json({ ok: true, totpEnabled: true });
 }

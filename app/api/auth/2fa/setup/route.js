@@ -1,15 +1,25 @@
-import { getDb } from "../../../../../lib/server/db.js";
+// app/api/auth/2fa/setup/route.js
+import { initDb, getUserById, updateUserTotp } from "../../../../../lib/server/db.js";
 import { generateTotpSecret, totpUri } from "../../../../../lib/server/security.js";
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 
-export async function POST(request) {
+export async function GET(request, { env }) {
+  await initDb(env.DB);
+
   const userId = getUserId(request);
   if (!userId) return unauthorized();
 
-  const db = getDb();
-  const secret = generateTotpSecret();
-  db.prepare("UPDATE users SET totp_secret = ? WHERE id = ?").run(secret, userId);
-  const user = db.prepare("SELECT email FROM users WHERE id = ?").get(userId);
+  const user = await getUserById(env.DB, userId);
+  if (!user) {
+    return Response.json({ error: "Utente non trovato" }, { status: 404 });
+  }
 
-  return Response.json({ secret, otpauthUri: totpUri(secret, user.email) });
+  const totpSecret = generateTotpSecret();
+  const issuer = "Widow Blue";
+  const uri = totpUri(totpSecret, issuer, user.email);
+
+  await updateUserTotp(env.DB, userId, totpSecret, false);
+
+  return Response.json({ totpUri: uri });
 }
+

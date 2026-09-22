@@ -1,0 +1,3 @@
+{
+  "/api/chat/[contactId]/stream/route": "app/api/chat/[contactId]/stream/route.js"
+}

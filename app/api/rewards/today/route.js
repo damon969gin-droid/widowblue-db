@@ -1,24 +1,54 @@
-import { getDb } from "../../../../lib/server/db.js";
-import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
-import { STEP_GOAL, today } from "../../../../lib/server/rewardsLogic.js";
+// app/api/rewards/today/route.js
+import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/server/db.js";
 
-export async function GET(request) {
-  const userId = getUserId(request);
-  if (!userId) return unauthorized();
+export async function GET(request, { env }) {
+  // Assicurati che il DB sia inizializzato (puoi farlo una volta all'avvio del worker)
+  await initDb(env.DB);
 
-  const db = getDb();
-  const row = db
-    .prepare("SELECT steps, wblu_awarded FROM steps_log WHERE user_id = ? AND day = ?")
-    .get(userId, today());
+  // Esempio: prendi user_id da query o da sessione/auth
+  const url = new URL(request.url);
+  const userId = Number(url.searchParams.get("user_id"));
 
-  if (!row) {
-    return Response.json({ day: today(), steps: 0, stepGoal: STEP_GOAL, wbluAwarded: 0, euroEstimate: 0 });
+  if (!userId) {
+    return new Response(JSON.stringify({ error: "user_id missing" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-  return Response.json({
-    day: today(),
-    steps: row.steps,
-    stepGoal: STEP_GOAL,
-    wbluAwarded: row.wblu_awarded,
-    euroEstimate: row.wblu_awarded,
+
+  const user = await getUserById(env.DB, userId);
+  if (!user) {
+    return new Response(JSON.stringify({ error: "User not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  const log = await getStepLog(env.DB, userId, today);
+
+  return new Response(JSON.stringify({ user, log }), {
+    headers: { "Content-Type": "application/json" },
   });
 }
+
+export async function POST(request, { env }) {
+  await initDb(env.DB);
+
+  const body = await request.json();
+  const { user_id, day, steps, wblu_awarded } = body;
+
+  if (!user_id || !day || steps == null || wblu_awarded == null) {
+    return new Response(JSON.stringify({ error: "Missing fields" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  await upsertStepLog(env.DB, { user_id, day, steps, wblu_awarded });
+
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+

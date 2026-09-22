@@ -1,29 +1,57 @@
-import { getDb } from "../../../../lib/server/db.js";
+// app/api/rewards/steps/route.js
+import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/server/db.js";
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 import { STEP_GOAL, MAX_PLAUSIBLE_STEPS, computeReward, today } from "../../../../lib/server/rewardsLogic.js";
 
-export async function POST(request) {
+export async function GET(request, { env }) {
+  // Inizializza DB
+  await initDb(env.DB);
+
+  const userId = getUserId(request);
+  if (!userId) return unauthorized();
+
+  const user = await getUserById(env.DB, userId);
+  if (!user) {
+    return Response.json({ error: "Utente non trovato" }, { status: 404 });
+  }
+
+  const day = today();
+  const log = await getStepLog(env.DB, userId, day);
+
+  return Response.json({
+    steps: log?.steps ?? 0,
+    wblu_awarded: log?.wblu_awarded ?? 0,
+    stepGoal: STEP_GOAL,
+  });
+}
+
+export async function POST(request, { env }) {
+  // Inizializza DB
+  await initDb(env.DB);
+
   const userId = getUserId(request);
   if (!userId) return unauthorized();
 
   const body = await request.json().catch(() => ({}));
-  const steps = body.steps;
+  let steps = Number(body.steps);
 
-  if (!Number.isInteger(steps) || steps < 0) {
-    return Response.json({ error: "Valore passi non valido" }, { status: 400 });
-  }
-  if (steps > MAX_PLAUSIBLE_STEPS) {
-    return Response.json({ error: "Valore passi non plausibile, segnalato per revisione", flagged: true }, { status: 422 });
+  if (!Number.isFinite(steps) || steps < 0 || steps > MAX_PLAUSIBLE_STEPS) {
+    return Response.json({ error: "Numero di passi non valido" }, { status: 400 });
   }
 
   const day = today();
   const reward = computeReward(steps);
 
-  const db = getDb();
-  db.prepare(
-    `INSERT INTO steps_log (user_id, day, steps, wblu_awarded) VALUES (?, ?, ?, ?)
-     ON CONFLICT(user_id, day) DO UPDATE SET steps = excluded.steps, wblu_awarded = excluded.wblu_awarded`
-  ).run(userId, day, steps, reward);
+  await upsertStepLog(env.DB, {
+    user_id: userId,
+    day,
+    steps,
+    wblu_awarded: reward,
+  });
 
-  return Response.json({ day, steps, stepGoal: STEP_GOAL, wbluAwarded: reward, euroEstimate: reward });
+  return Response.json({
+    steps,
+    wblu_awarded: reward,
+  });
 }
+

@@ -1,8 +1,12 @@
-import { getDb } from "../../../../lib/server/db.js";
+// app/api/auth/register/route.js
+import { initDb, getUserByEmail, createUser } from "../../../../lib/server/db.js";
 import { hashPassword } from "../../../../lib/server/security.js";
 import { signToken } from "../../../../lib/server/authHelper.js";
 
-export async function POST(request) {
+export async function POST(request, { env }) {
+  // Inizializza DB
+  await initDb(env.DB);
+
   const body = await request.json().catch(() => ({}));
   const email = (body.email || "").trim().toLowerCase();
   const password = body.password || "";
@@ -18,18 +22,23 @@ export async function POST(request) {
     return Response.json({ error: "Numero di telefono obbligatorio" }, { status: 400 });
   }
 
-  const db = getDb();
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+  const existing = await getUserByEmail(env.DB, email);
   if (existing) {
     return Response.json({ error: "Email già registrata" }, { status: 409 });
   }
 
   const passwordHash = hashPassword(password);
-  const result = db
-    .prepare("INSERT INTO users (email, phone, password_hash) VALUES (?, ?, ?)")
-    .run(email, phone, passwordHash);
-  const userId = Number(result.lastInsertRowid);
-  const token = signToken(userId);
+  const user = await createUser(env.DB, {
+    email,
+    phone,
+    password_hash: passwordHash,
+    totp_secret: null,
+  });
 
-  return Response.json({ token, user: { id: userId, email } }, { status: 201 });
+  const token = signToken(user.id);
+
+  return Response.json(
+    { token, user: { id: user.id, email: user.email, phone: user.phone } },
+    { status: 201 }
+  );
 }

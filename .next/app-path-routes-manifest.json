@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/2fa/setup/route": "/api/auth/2fa/setup",
+  "/api/auth/2fa/verify/route": "/api/auth/2fa/verify",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/auth/register/route": "/api/auth/register",
+  "/api/chat/[contactId]/messages/route": "/api/chat/[contactId]/messages",
+  "/api/chat/[contactId]/stream/route": "/api/chat/[contactId]/stream",
+  "/api/chat/contacts/route": "/api/chat/contacts",
+  "/api/health/route": "/api/health",
+  "/api/rewards/steps/route": "/api/rewards/steps",
+  "/api/rewards/today/route": "/api/rewards/today",
+  "/page": "/"
+}
