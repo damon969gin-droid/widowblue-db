@@ -7,12 +7,15 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
     "test": "node --test tests/",
     "pages:build": "npx @cloudflare/next-on-pages",
-    "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=widowblue"
+    "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=widowblue",
+    "build:next": "next build",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.30.0",
@@ -24,6 +27,7 @@
     "tailwindcss": "3.4.4"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.6",
     "postcss": "^8.5.28"
   }
 }
