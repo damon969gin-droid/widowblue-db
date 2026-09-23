@@ -134,4 +134,70 @@ export function HomeScreen({
           {["mesh", "wifi", "5g"].map((key) => {
             const meta = NET_META[key];
             const Icon = meta.icon;
-            const active = network ===
+            const active = network === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setNetwork(key)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-mono transition-all duration-200 ${
+                  active
+                    ? "bg-neutral-100 text-black font-semibold shadow-md"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <Icon size={13} />
+                {meta.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] font-mono text-neutral-500 mt-2 px-1 leading-tight">
+          {NET_META[network]?.detail}
+        </p>
+      </section>
+
+      {/* 3. Card Gamification: Contapassi & Token WBLU */}
+      <section className="mx-5 my-2 p-4 rounded-2xl bg-neutral-950 border border-neutral-800 backdrop-blur-md shadow-xl">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 text-neutral-400 text-xs font-mono">
+            <Flame size={14} className="text-amber-500" />
+            <span>Passi Giornalieri</span>
+          </div>
+          <button
+            onClick={() => setShowTokenInfo((v) => !v)}
+            className="flex items-center gap-1 text-[11px] font-mono text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Cos&apos;è WBLU? <Info size={11} />
+          </button>
+        </div>
+
+        <div className="flex items-baseline justify-between mb-2">
+          <span className="text-2xl font-bold font-mono tracking-tight text-white">
+            {steps.toLocaleString("it-IT")}
+          </span>
+          <span className="text-xs font-mono text-neutral-500">
+            / {stepGoal.toLocaleString("it-IT")} target
+          </span>
+        </div>
+
+        <div className="h-2 w-full rounded-full bg-neutral-900 overflow-hidden mb-2.5 border border-neutral-800">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-500 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-xs font-mono">
+          <span className="text-emerald-400 font-bold flex items-center gap-1">
+            <Award size={13} /> +{fmtEuro(earnedEuro)} WBLU
+          </span>
+          <span className="text-neutral-500">
+            ≈ €{fmtEuro(earnedEuro)} · max €20/g
+          </span>
+        </div>
+
+        {showTokenInfo && (
+          <div className="mt-3 pt-3 border-t border-neutral-800 text-[11px] text-neutral-400 leading-relaxed font-sans">
+            WBLU è il token di utilità dell&apos;ecosistema Widow Blue: si accumula raggiungendo 7.000 passi al giorno ed è spendibile in sconti, premi o convertibile in
+
+            
