@@ -198,6 +198,87 @@ export function HomeScreen({
 
         {showTokenInfo && (
           <div className="mt-3 pt-3 border-t border-neutral-800 text-[11px] text-neutral-400 leading-relaxed font-sans">
-            WBLU è il token di utilità dell&apos;ecosistema Widow Blue: si accumula raggiungendo 7.000 passi al giorno ed è spendibile in sconti, premi o convertibile in
+            WBLU è il token di utilità dell&apos;ecosistema Widow Blue: si accumula raggiungendo 7.000 passi al giorno ed è spendibile in sconti, premi o convertibile in valuta fiat.
+          </div>
+        )}
+      </section>
 
-            
+      {/* 4. Barra di Ricerca */}
+      <div className="px-5 py-1.5">
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-neutral-800 focus-within:border-neutral-600 transition-colors">
+          <Search size={14} className="text-neutral-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cerca contatto, nodo mesh o messaggio..."
+            className="bg-transparent border-none outline-none text-xs text-white placeholder-neutral-600 w-full font-sans"
+          />
+        </div>
+      </div>
+
+      {/* 5. Lista Canali Chat & Nodi Mesh */}
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+        {contactsList.length === 0 ? (
+          <div className="py-8 text-center text-xs font-mono text-neutral-600">
+            Nessun nodo o chat trovata
+          </div>
+        ) : (
+          contactsList.map((c) => {
+            const lastMsgs = messages?.[c.id] || [];
+            const last = lastMsgs[lastMsgs.length - 1];
+            return (
+              <button
+                key={c.id}
+                onClick={() => onOpenChat(c.id)}
+                className="w-full flex items-center gap-3.5 p-2.5 rounded-xl hover:bg-neutral-900 active:scale-[0.99] transition-all text-left"
+              >
+                <div className="relative shrink-0">
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs"
+                    style={{
+                      backgroundColor: (c.color || "#3B82F6") + "20",
+                      color: c.color || "#60A5FA",
+                      border: `1px solid ${(c.color || "#3B82F6")}40`,
+                    }}
+                  >
+                    {c.group ? <Users size={16} /> : c.initials}
+                  </div>
+                  {c.status === "mesh" && (
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-black border border-neutral-800 flex items-center justify-center"
+                      title="Connesso via Bluetooth Mesh"
+                    >
+                      <Bluetooth size={9} className="text-blue-400" />
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-neutral-200 truncate">
+                      {c.name}
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-500 shrink-0 ml-2">
+                      {last?.time || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <span className="text-xs text-neutral-400 truncate">
+                      {last?.text || "Inizia una nuova conversazione protetta"}
+                    </span>
+                    {c.unread > 0 && (
+                      <span className="shrink-0 ml-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">
+                        {c.unread}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
