@@ -23,5 +23,8 @@
   ],
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    "NEXT_PUBLIC_API_URL": "https://widowblue-db.damon969gin.workers.dev"
   }
 }
