@@ -4,27 +4,28 @@ import { generateTotpSecret, totpUri } from "../../../../../lib/server/security.
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 
 export async function GET(request) {
-  const env = globalThis.__CLOUDFLARE_ENV__;
-  
-  if (!env || !env.DB) {
-    return Response.json({ error: "Database not configured" }, { status: 500 });
+  try {
+    console.log("2FA Setup - DB binding available:", typeof DB !== 'undefined');
+    
+    await initDb();
+
+    const userId = getUserId(request);
+    if (!userId) return unauthorized();
+
+    const user = await getUserById(userId);
+    if (!user) {
+      return Response.json({ error: "Utente non trovato" }, { status: 404 });
+    }
+
+    const totpSecret = generateTotpSecret();
+    const issuer = "Widow Blue";
+    const uri = totpUri(totpSecret, issuer, user.email);
+
+    await updateUserTotp(userId, totpSecret, false);
+
+    return Response.json({ totpUri: uri });
+  } catch (error) {
+    console.error("2FA Setup error:", String(error));
+    return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
   }
-  
-  await initDb(env.DB);
-
-  const userId = getUserId(request);
-  if (!userId) return unauthorized();
-
-  const user = await getUserById(env.DB, userId);
-  if (!user) {
-    return Response.json({ error: "Utente non trovato" }, { status: 404 });
-  }
-
-  const totpSecret = generateTotpSecret();
-  const issuer = "Widow Blue";
-  const uri = totpUri(totpSecret, issuer, user.email);
-
-  await updateUserTotp(env.DB, userId, totpSecret, false);
-
-  return Response.json({ totpUri: uri });
 }

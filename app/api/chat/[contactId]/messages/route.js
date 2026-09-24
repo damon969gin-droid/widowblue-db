@@ -4,78 +4,80 @@ import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js
 import { publish } from "../../../../../lib/server/pubsub.js";
 
 export async function GET(request, { params }) {
-  const env = globalThis.__CLOUDFLARE_ENV__;
-  
-  if (!env || !env.DB) {
-    return Response.json({ error: "Database not configured" }, { status: 500 });
+  try {
+    console.log("Chat Messages GET - DB binding available:", typeof DB !== 'undefined');
+    
+    await initDb();
+
+    const userId = getUserId(request);
+    if (!userId) return unauthorized();
+
+    const { contactId } = params;
+
+    const contact = await getContactById(contactId);
+    if (!contact) {
+      return Response.json({ error: "Contatto non trovato" }, { status: 404 });
+    }
+
+    const rows = await getMessagesForContact(contactId);
+
+    return Response.json(
+      rows.map((r) => ({
+        id: r.id,
+        from: r.sender,
+        text: r.text,
+        time: r.created_at,
+      }))
+    );
+  } catch (error) {
+    console.error("Chat Messages GET error:", String(error));
+    return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
   }
-  
-  await initDb(env.DB);
-
-  const userId = getUserId(request);
-  if (!userId) return unauthorized();
-
-  const { contactId } = params;
-
-  const contact = await getContactById(env.DB, contactId);
-  if (!contact) {
-    return Response.json({ error: "Contatto non trovato" }, { status: 404 });
-  }
-
-  const rows = await getMessagesForContact(env.DB, contactId);
-
-  return Response.json(
-    rows.map((r) => ({
-      id: r.id,
-      from: r.sender,
-      text: r.text,
-      time: r.created_at,
-    }))
-  );
 }
 
 export async function POST(request, { params }) {
-  const env = globalThis.__CLOUDFLARE_ENV__;
-  
-  if (!env || !env.DB) {
-    return Response.json({ error: "Database not configured" }, { status: 500 });
-  }
-  
-  await initDb(env.DB);
+  try {
+    console.log("Chat Messages POST - DB binding available:", typeof DB !== 'undefined');
+    
+    await initDb();
 
-  const userId = getUserId(request);
-  if (!userId) return unauthorized();
+    const userId = getUserId(request);
+    if (!userId) return unauthorized();
 
-  const { contactId } = params;
+    const { contactId } = params;
 
-  const contact = await getContactById(env.DB, contactId);
-  if (!contact) {
-    return Response.json({ error: "Contatto non trovato" }, { status: 404 });
-  }
+    const contact = await getContactById(contactId);
+    if (!contact) {
+      return Response.json({ error: "Contatto non trovato" }, { status: 404 });
+    }
 
-  const body = await request.json().catch(() => ({}));
-  const text = (body.text || "").trim();
+    const body = await request.json().catch(() => ({}));
+    const text = (body.text || "").trim();
 
-  if (!text) {
-    return Response.json({ error: "Messaggio vuoto" }, { status: 400 });
-  }
+    if (!text) {
+      return Response.json({ error: "Messaggio vuoto" }, { status: 400 });
+    }
 
-  await saveMessage(env.DB, {
-    contact_id: contactId,
-    user_id: userId,
-    sender: "user",
-    text,
-  });
-
-  await publish(contactId, {
-    type: "message",
-    data: {
-      contactId,
-      from: "user",
+    await saveMessage({
+      contact_id: contactId,
+      user_id: userId,
+      sender: "user",
       text,
-      time: new Date().toISOString(),
-    },
-  });
+    });
 
-  return Response.json({ ok: true }, { status: 201 });
+    await publish(contactId, {
+      type: "message",
+      data: {
+        contactId,
+        from: "user",
+        text,
+        time: new Date().toISOString(),
+      },
+    });
+
+    return Response.json({ ok: true }, { status: 201 });
+  } catch (error) {
+    console.error("Chat Messages POST error:", String(error));
+    return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
+  }
 }

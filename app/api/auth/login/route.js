@@ -6,14 +6,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-pro
 
 export async function POST(request) {
   try {
-    const env = globalThis.__CLOUDFLARE_ENV__;
+    console.log("Login - DB binding available:", typeof DB !== 'undefined');
     
-    if (!env || !env.DB) {
-      console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
-      return Response.json({ error: "Database not configured" }, { status: 500 });
-    }
-
-    await initDb(env.DB);
+    await initDb();
 
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
@@ -24,7 +19,7 @@ export async function POST(request) {
       return Response.json({ error: "Email e password sono obbligatori" }, { status: 400 });
     }
 
-    const user = await getUserByEmail(env.DB, email);
+    const user = await getUserByEmail(email);
 
     if (!user || !await verifyPassword(password, user.password_hash)) {
       return Response.json({ error: "Credenziali non valide" }, { status: 401 });
