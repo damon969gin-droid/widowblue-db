@@ -3,9 +3,13 @@ import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 import { STEP_GOAL, MAX_PLAUSIBLE_STEPS, computeReward, today } from "../../../../lib/server/rewardsLogic.js";
 
-export async function GET(request) {
-  // Inizializza DB
-  const env = globalThis.__ENV;
+export async function GET(request, context) {
+  const env = context?.env || globalThis.__ENV;
+  
+  if (!env || !env.DB) {
+    return Response.json({ error: "Database not configured" }, { status: 500 });
+  }
+  
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -26,9 +30,13 @@ export async function GET(request) {
   });
 }
 
-export async function POST(request) {
-  // Inizializza DB
-  const env = globalThis.__ENV;
+export async function POST(request, context) {
+  const env = context?.env || globalThis.__ENV;
+  
+  if (!env || !env.DB) {
+    return Response.json({ error: "Database not configured" }, { status: 500 });
+  }
+  
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -56,4 +64,3 @@ export async function POST(request) {
     wblu_awarded: reward,
   });
 }
-

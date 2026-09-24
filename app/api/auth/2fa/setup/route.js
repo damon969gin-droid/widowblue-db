@@ -3,8 +3,13 @@ import { initDb, getUserById, updateUserTotp } from "../../../../../lib/server/d
 import { generateTotpSecret, totpUri } from "../../../../../lib/server/security.js";
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 
-export async function GET(request) {
-  const env = globalThis.__ENV;
+export async function GET(request, context) {
+  const env = context?.env || globalThis.__ENV;
+  
+  if (!env || !env.DB) {
+    return Response.json({ error: "Database not configured" }, { status: 500 });
+  }
+  
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -23,4 +28,3 @@ export async function GET(request) {
 
   return Response.json({ totpUri: uri });
 }
-

@@ -4,9 +4,9 @@ import { verifyPassword, verifyTotp, signJwt } from "../../../../lib/server/secu
 
 const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-production";
 
-export async function POST(request) {
+export async function POST(request, context) {
   try {
-    const env = globalThis.__ENV;
+    const env = context?.env || globalThis.__ENV;
     
     if (!env || !env.DB) {
       console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");

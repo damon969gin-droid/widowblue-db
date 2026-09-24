@@ -3,8 +3,13 @@ import { initDb, getUserById, updateUserTotp } from "../../../../../lib/server/d
 import { verifyTotp } from "../../../../../lib/server/security.js";
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 
-export async function POST(request) {
-  const env = globalThis.__ENV;
+export async function POST(request, context) {
+  const env = context?.env || globalThis.__ENV;
+  
+  if (!env || !env.DB) {
+    return Response.json({ error: "Database not configured" }, { status: 500 });
+  }
+  
   await initDb(env.DB);
 
   const userId = getUserId(request);
