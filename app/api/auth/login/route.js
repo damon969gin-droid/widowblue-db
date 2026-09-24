@@ -1,10 +1,18 @@
 // app/api/auth/login/route.js
 import { initDb, getUserByEmail } from "../../../../lib/server/db.js";
-import { verifyPassword, verifyTotp } from "../../../../lib/server/security.js";
-import { signToken } from "../../../../lib/server/authHelper.js";
+import { verifyPassword, verifyTotp, signJwt } from "../../../../lib/server/security.js";
 
-export async function POST(request, { env }) {
+const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-production";
+
+export async function POST(request, context) {
   try {
+    const env = context.env || {};
+    
+    if (!env.DB) {
+      console.error("D1 binding DB not found in env:", Object.keys(env));
+      return Response.json({ error: "Database not configured" }, { status: 500 });
+    }
+
     await initDb(env.DB);
 
     const body = await request.json().catch(() => ({}));
@@ -18,12 +26,12 @@ export async function POST(request, { env }) {
 
     const user = await getUserByEmail(env.DB, email);
 
-    if (!user || !verifyPassword(password, user.password_hash)) {
+    if (!user || !await verifyPassword(password, user.password_hash)) {
       return Response.json({ error: "Credenziali non valide" }, { status: 401 });
     }
 
     if (user.totp_enabled) {
-      if (!totpCode || !verifyTotp(user.totp_secret, String(totpCode))) {
+      if (!totpCode || !await verifyTotp(user.totp_secret, String(totpCode))) {
         return Response.json(
           { error: "Codice 2FA mancante o non valido", requires2fa: true },
           { status: 401 }
@@ -31,14 +39,14 @@ export async function POST(request, { env }) {
       }
     }
 
-    const token = signToken(user.id);
+    const token = await signJwt({ userId: user.id }, JWT_SECRET);
 
     return Response.json(
       { token, user: { id: user.id, email: user.email, phone: user.phone } },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Login error:", error);
-    return Response.json({ error: "Internal server error", details: error.message }, { status: 500 });
+    console.error("Login error:", String(error), JSON.stringify(error, null, 2));
+    return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
   }
 }
