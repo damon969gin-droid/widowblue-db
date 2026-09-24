@@ -5,6 +5,7 @@ import { publish } from "../../../../../lib/server/pubsub.js";
 
 export async function GET(request, { params, env }) {
   // Inizializza DB
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -31,6 +32,7 @@ export async function GET(request, { params, env }) {
 
 export async function POST(request, { params, env }) {
   // Inizializza DB
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const userId = getUserId(request);

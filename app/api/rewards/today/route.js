@@ -1,8 +1,9 @@
 // app/api/rewards/today/route.js
 import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/server/db.js";
 
-export async function GET(request, { env }) {
+export async function GET(request) {
   // Assicurati che il DB sia inizializzato (puoi farlo una volta all'avvio del worker)
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   // Esempio: prendi user_id da query o da sessione/auth
@@ -32,7 +33,8 @@ export async function GET(request, { env }) {
   });
 }
 
-export async function POST(request, { env }) {
+export async function POST(request) {
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const body = await request.json();

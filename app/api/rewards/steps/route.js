@@ -3,8 +3,9 @@ import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 import { STEP_GOAL, MAX_PLAUSIBLE_STEPS, computeReward, today } from "../../../../lib/server/rewardsLogic.js";
 
-export async function GET(request, { env }) {
+export async function GET(request) {
   // Inizializza DB
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -25,8 +26,9 @@ export async function GET(request, { env }) {
   });
 }
 
-export async function POST(request, { env }) {
+export async function POST(request) {
   // Inizializza DB
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const userId = getUserId(request);

@@ -2,8 +2,9 @@
 import { initDb, getContacts } from "../../../../lib/server/db.js";
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 
-export async function GET(request, { env }) {
+export async function GET(request) {
   // Inizializza DB
+  const env = globalThis.__ENV;
   await initDb(env.DB);
 
   const userId = getUserId(request);
