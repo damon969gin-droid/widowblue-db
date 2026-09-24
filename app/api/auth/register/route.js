@@ -13,6 +13,7 @@ export async function POST(request) {
     console.log("Register - DB exists:", !!(env?.DB));
     
     if (!env || !env.DB) {
+      console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
       return Response.json({ error: "Database not configured" }, { status: 500 });
     }
 
@@ -64,4 +65,3 @@ export async function POST(request) {
     return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
   }
 }
-
