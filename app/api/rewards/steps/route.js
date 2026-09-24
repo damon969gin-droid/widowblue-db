@@ -3,8 +3,8 @@ import { initDb, getStepLog, upsertStepLog, getUserById } from "../../../../lib/
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 import { STEP_GOAL, MAX_PLAUSIBLE_STEPS, computeReward, today } from "../../../../lib/server/rewardsLogic.js";
 
-export async function GET(request, context) {
-  const env = context?.env || globalThis.__ENV;
+export async function GET(request) {
+  const env = globalThis.__CLOUDFLARE_ENV__;
   
   if (!env || !env.DB) {
     return Response.json({ error: "Database not configured" }, { status: 500 });
@@ -30,8 +30,8 @@ export async function GET(request, context) {
   });
 }
 
-export async function POST(request, context) {
-  const env = context?.env || globalThis.__ENV;
+export async function POST(request) {
+  const env = globalThis.__CLOUDFLARE_ENV__;
   
   if (!env || !env.DB) {
     return Response.json({ error: "Database not configured" }, { status: 500 });

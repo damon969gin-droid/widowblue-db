@@ -3,8 +3,8 @@ import { initDb, getContactById, getMessagesForContact, saveMessage } from "../.
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 import { publish } from "../../../../../lib/server/pubsub.js";
 
-export async function GET(request, context, { params }) {
-  const env = context?.env || globalThis.__ENV;
+export async function GET(request, { params }) {
+  const env = globalThis.__CLOUDFLARE_ENV__;
   
   if (!env || !env.DB) {
     return Response.json({ error: "Database not configured" }, { status: 500 });
@@ -34,8 +34,8 @@ export async function GET(request, context, { params }) {
   );
 }
 
-export async function POST(request, context, { params }) {
-  const env = context?.env || globalThis.__ENV;
+export async function POST(request, { params }) {
+  const env = globalThis.__CLOUDFLARE_ENV__;
   
   if (!env || !env.DB) {
     return Response.json({ error: "Database not configured" }, { status: 500 });

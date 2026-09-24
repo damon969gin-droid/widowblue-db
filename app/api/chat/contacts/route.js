@@ -2,8 +2,8 @@
 import { initDb, getContacts } from "../../../../lib/server/db.js";
 import { getUserId, unauthorized } from "../../../../lib/server/authHelper.js";
 
-export async function GET(request, context) {
-  const env = context?.env || globalThis.__ENV;
+export async function GET(request) {
+  const env = globalThis.__CLOUDFLARE_ENV__;
   
   if (!env || !env.DB) {
     return Response.json({ error: "Database not configured" }, { status: 500 });
