@@ -1,0 +1,12 @@
+name = "widowblue-db"
+compatibility_date = "2026-09-21"
+
+[observability]
+enabled = true
+
+[assets]
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "widow-blue"
