@@ -4,12 +4,26 @@ import { verifyPassword, verifyTotp, signJwt } from "../../../../lib/server/secu
 
 const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-production";
 
-export async function POST(request, context) {
+export async function POST(request, { env }) {
   try {
-    const env = context.env || {};
-    
-    if (!env.DB) {
-      console.error("D1 binding DB not found in env:", Object.keys(env));
+    if (!env || !env.DB) {
+      console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
+      return Response.json({ error: "Database not configured" }, { status: 500 });
+    }
+
+    await initDb(env.DB);
+
+    const body = await request.json().cat > app/api/auth/login/route.js << 'EOF'
+// app/api/auth/login/route.js
+import { initDb, getUserByEmail } from "../../../../lib/server/db.js";
+import { verifyPassword, verifyTotp, signJwt } from "../../../../lib/server/security.js";
+
+const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-production";
+
+export async function POST(request, { env }) {
+  try {
+    if (!env || !env.DB) {
+      console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
       return Response.json({ error: "Database not configured" }, { status: 500 });
     }
 
