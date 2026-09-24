@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "opennextjs-cloudflare build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node --test tests/",
@@ -15,7 +15,8 @@
     "pages:deploy": "npm run pages:build && wrangler pages deploy .vercel/output/static --project-name=widowblue",
     "build:next": "next build",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "build:worker": "opennextjs-cloudflare build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.30.0",
