@@ -1,11 +1,14 @@
 // app/api/auth/login/route.js
 import { initDb, getUserByEmail } from "../../../../lib/server/db.js";
 import { verifyPassword, verifyTotp, signJwt } from "../../../../lib/server/security.js";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const JWT_SECRET = process.env.JWT_SECRET || "widowblue-secret-key-change-in-production";
 
-export async function POST(request, { env }) {
+export async function POST(request) {
   try {
+    const { env } = getCloudflareContext();
+    
     if (!env || !env.DB) {
       console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
       return Response.json({ error: "Database not configured" }, { status: 500 });
