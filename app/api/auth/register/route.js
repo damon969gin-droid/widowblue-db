@@ -8,12 +8,22 @@ export async function POST(request) {
   try {
     const env = globalThis.__CLOUDFLARE_ENV__;
     
+    console.log("Register - env exists:", !!env);
+    console.log("Register - env keys:", env ? Object.keys(env) : "N/A");
+    console.log("Register - DB exists:", !!(env?.DB));
+    
     if (!env || !env.DB) {
-      console.error("D1 binding DB not found in env:", env ? Object.keys(env) : "env is undefined");
       return Response.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    await initDb(env.DB);
+    // Inizializza DB e cattura errori
+    try {
+      await initDb(env.DB);
+      console.log("DB initialized successfully");
+    } catch (initError) {
+      console.error("DB init error:", String(initError), JSON.stringify(initError, null, 2));
+      return Response.json({ error: "DB init failed", details: String(initError) }, { status: 500 });
+    }
 
     const body = await request.json().catch(() => ({}));
     const email = (body.email || "").trim().toLowerCase();
@@ -54,3 +64,4 @@ export async function POST(request) {
     return Response.json({ error: "Internal server error", details: String(error) }, { status: 500 });
   }
 }
+
