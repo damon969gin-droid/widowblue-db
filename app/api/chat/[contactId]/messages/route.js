@@ -3,9 +3,10 @@ import { initDb, getContactById, getMessagesForContact, saveMessage } from "../.
 import { getUserId, unauthorized } from "../../../../../lib/server/authHelper.js";
 import { publish } from "../../../../../lib/server/pubsub.js";
 
-export async function GET(request, { params, env }) {
-  // Inizializza DB
+export async function GET(request, { params }) {
   const env = globalThis.__ENV;
+  
+  // Inizializza DB
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -30,9 +31,10 @@ export async function GET(request, { params, env }) {
   );
 }
 
-export async function POST(request, { params, env }) {
-  // Inizializza DB
+export async function POST(request, { params }) {
   const env = globalThis.__ENV;
+  
+  // Inizializza DB
   await initDb(env.DB);
 
   const userId = getUserId(request);
@@ -55,11 +57,10 @@ export async function POST(request, { params, env }) {
   await saveMessage(env.DB, {
     contact_id: contactId,
     user_id: userId,
-    sender: "user", // o come chiami l'utente nel tuo sistema
+    sender: "user",
     text,
   });
 
-  // Pubblica il messaggio ai subscriber (se usi pubsub)
   await publish(contactId, {
     type: "message",
     data: {
