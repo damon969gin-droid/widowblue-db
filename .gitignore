@@ -1,1 +1,16 @@
-node_modules
+# Next.js
+.next/
+out/
+*.log
+
+# OpenNext
+.open-next/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
