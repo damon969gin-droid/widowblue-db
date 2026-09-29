@@ -1,19 +1,28 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
+  "$schema": "./node_modules/wrangler/config-schema.json",
+
   "name": "widowblue-db",
+
   "main": ".open-next/worker.js",
+
   "compatibility_date": "2026-09-21",
-  "compatibility_flags": ["nodejs_compat"],
+
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "widowblue-db"
     }
   ],
+
   "d1_databases": [
     {
       "binding": "DB",
@@ -21,10 +30,13 @@
       "database_id": "1ddad507-a5df-49e7-91ed-882ad6fc7143"
     }
   ],
+
   "observability": {
     "enabled": true
   },
+
   "vars": {
     "NEXT_PUBLIC_API_URL": "https://widowblue-db.damon969gin.workers.dev"
   }
 }
+
